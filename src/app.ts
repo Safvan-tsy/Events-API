@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Express } from 'express';
 
 
-const app = express();
+const app: Express = express();
 
 
 
-module.exports = app;
+export default app;
