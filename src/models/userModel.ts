@@ -6,6 +6,7 @@ interface Users extends Document {
     password: string,
     passwordConfirm: string,
     role: string,
+    organizations: mongoose.Types.ObjectId[]
 }
 
 const userSchema: Schema = new Schema(
@@ -29,7 +30,11 @@ const userSchema: Schema = new Schema(
             type: String,
             enum: ['user', 'admin'],
             default: 'user'
-        }
+        },
+        organisations: [{
+            type: mongoose.Types.ObjectId,
+            ref: 'Organizations'
+        }],
 
     }
 )
