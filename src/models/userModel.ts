@@ -1,4 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
+import validator from 'validator'
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto'
 
 interface Users extends Document {
     userName: string,
@@ -6,7 +9,8 @@ interface Users extends Document {
     password: string,
     passwordConfirm: string,
     role: string,
-    organizations: mongoose.Types.ObjectId[]
+    organizations: mongoose.Types.ObjectId[],
+    correctPasswords(candidatePassword: string, userPassword: string): Promise<boolean>;
 }
 
 const userSchema: Schema = new Schema(
@@ -17,26 +21,47 @@ const userSchema: Schema = new Schema(
         },
         email: {
             type: String,
-            required: [true, "provide email please"]
+            required: [true, "provide email please"],
+            validate: [validator.isEmail, 'Please provide a valid email']
         },
-        passowrd: {
+        password: {
             type: String,
-            required: [true, "please enter password"]
+            required: [true, "please enter password"],
+            select:false
         },
         passwordConfirm: {
-            type: String
+            type: String,
+            required:true,
+            validate: {
+                validator: function (el:string) {
+                    return el === this.password;
+                },
+                message: 'Passwords are not the same!'
+            }
         },
         role: {
             type: String,
             enum: ['user', 'admin'],
             default: 'user'
         },
-        organisations: [{
+        organizations: [{
             type: mongoose.Types.ObjectId,
             ref: 'Organizations'
         }],
 
     }
 )
+userSchema.pre('save', async function(next){
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password,12);
+    this.passwordConfirm = undefined;
+    next()
+})
 
-export default mongoose.model<Users>('Users', userSchema)
+userSchema.methods.correctPasswords = async function(candidatePassword: string, userPassword: string): Promise<boolean> {
+    return await bcrypt.compare(candidatePassword, userPassword);
+  };
+  
+  const Users = mongoose.model<Users>('Users', userSchema);
+  
+  export default Users;
