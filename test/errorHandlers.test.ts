@@ -18,7 +18,7 @@ describe('errorHandler', () => {
 
   it('should handle operational errors in development environment', () => {
     const err: AppError = new AppError('Invalid request', 400);
-    process.env.API_ENV = 'development';
+    process.env.NODE_ENV = 'development';
 
     errorHandler(err, req, res, next);
 
@@ -33,7 +33,7 @@ describe('errorHandler', () => {
 
   it('should handle operational errors in production environment', () => {
     const err: AppError = new AppError('Invalid request', 400);
-    process.env.API_ENV = 'production';
+    process.env.NODE_ENV = 'production';
 
     errorHandler(err, req, res, next);
 
@@ -46,7 +46,7 @@ describe('errorHandler', () => {
 
   it('should handle non-operational errors in production environment', () => {
     const err: Error = new Error('Internal server error');
-    process.env.API_ENV = 'production';
+    process.env.NODE_ENV = 'production';
 
     errorHandler(err, req, res, next);
 

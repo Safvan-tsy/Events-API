@@ -17,9 +17,8 @@ export const createSendToken = (user: any, statusCode: number, res: Response) =>
     const cookieOptions = {
         expires: new Date(Date.now() + Number(process.env.JWT_COOKIE_EXPIRY) * 24 * 60 * 60 * 1000),
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV !== 'development'
     };
-    if (process.env.NODE_ENV === 'development') cookieOptions.secure = false;
 
     res.cookie('jwt', token, cookieOptions);
 
@@ -37,7 +36,7 @@ export const createSendToken = (user: any, statusCode: number, res: Response) =>
 export const signup = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
     const existingUser = await Users.findOne({ email: req.body.email });
-    if (existingUser) return next(new AppError('user already exist, Try logiinf in!', 400))
+    if (existingUser) return next(new AppError('user already exist, Try loging in!', 400))
 
     const newUser = await Users.create(
         {
@@ -63,7 +62,7 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
     const user = await Users.findOne({ email }).select('+password');
     
     if (!user || !(await user.correctPasswords(password, user.password))) {
-      return next(new AppError('Incorrect Email or password!', 404));
+      return next(new AppError('Incorrect Email or password!', 401));
     }
   
     createSendToken(user, 200, res);
